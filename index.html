@@ -170,18 +170,18 @@
           </span>
       </div>
 
-      <!-- Floating Nav Buttons (Z-index 40 để nằm trên Canvas) -->
-      <div class="absolute inset-y-0 left-2 md:left-6 flex items-center z-40 pointer-events-none">
-         <button onclick="prevReviewSlide()" class="pointer-events-auto bg-slate-800/80 hover:bg-slate-700 text-white p-3 md:p-5 rounded-full backdrop-blur border border-slate-600 shadow-lg transition hover:-translate-x-1">
-            <i data-lucide="chevron-left" class="w-6 h-6 md:w-8 md:h-8"></i>
-         </button>
-      </div>
-      <div class="absolute inset-y-0 right-2 md:right-6 flex items-center z-40 pointer-events-none">
-         <button onclick="nextReviewSlide()" class="pointer-events-auto bg-emerald-600/80 hover:bg-emerald-500 text-white p-3 md:p-5 rounded-full backdrop-blur border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] transition hover:translate-x-1">
-            <i data-lucide="chevron-right" class="w-6 h-6 md:w-8 md:h-8"></i>
-         </button>
-      </div>
-
+    </div>
+    
+    <!-- Floating Nav Buttons (Đưa ra ngoài cùng với Canvas, có Z-index 40 để bắt sự kiện chuột) -->
+    <div class="absolute inset-y-0 left-2 md:left-6 flex items-center z-40 pointer-events-none">
+       <button onclick="prevReviewSlide()" class="pointer-events-auto bg-slate-800/80 hover:bg-slate-700 text-white p-3 md:p-5 rounded-full backdrop-blur border border-slate-600 shadow-lg transition hover:-translate-x-1" title="Phím tắt: Mũi tên trái">
+          <i data-lucide="chevron-left" class="w-6 h-6 md:w-8 md:h-8"></i>
+       </button>
+    </div>
+    <div class="absolute inset-y-0 right-2 md:right-6 flex items-center z-40 pointer-events-none">
+       <button onclick="nextReviewSlide()" class="pointer-events-auto bg-emerald-600/80 hover:bg-emerald-500 text-white p-3 md:p-5 rounded-full backdrop-blur border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] transition hover:translate-x-1" title="Phím tắt: Mũi tên phải">
+          <i data-lucide="chevron-right" class="w-6 h-6 md:w-8 md:h-8"></i>
+       </button>
     </div>
   </div>
 
@@ -831,9 +831,17 @@
         fullscreenBtn.addEventListener('click', toggleFullscreen);
     }
 
+    // Bắt sự kiện phím tắt
     document.addEventListener('keydown', (e) => {
-        if ((e.key === 'f' || e.key === 'F') && !reviewModalObj.classList.contains('hidden')) {
-            toggleFullscreen();
+        const modalObj = $('reviewModal');
+        if (modalObj && !modalObj.classList.contains('hidden')) {
+            if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
+            } else if (e.key === 'ArrowLeft') {
+                window.prevReviewSlide();
+            } else if (e.key === 'ArrowRight') {
+                window.nextReviewSlide();
+            }
         }
     });
 
