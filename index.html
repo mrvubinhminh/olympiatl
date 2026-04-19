@@ -25,8 +25,8 @@
   <style>
     /* Custom Scrollbar cho Olympia Theme */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: #0f172a; } /* slate-900 */
-    ::-webkit-scrollbar-thumb { background: #eab308; border-radius: 4px; } /* yellow-500 */
+    ::-webkit-scrollbar-track { background: #0f172a; } 
+    ::-webkit-scrollbar-thumb { background: #eab308; border-radius: 4px; } 
     ::-webkit-scrollbar-thumb:hover { background: #facc15; }
     
     .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
@@ -60,7 +60,13 @@
     /* Lưới nền Tri thức (Olympia Blue) */
     .bg-grid { background-image: linear-gradient(to bottom, rgba(59, 130, 246, 0.08) 1px, transparent 1px), linear-gradient(to right, rgba(59, 130, 246, 0.08) 1px, transparent 1px); background-size: 60px 60px; background-position: center; }
     
-    .bg-gradient-radial { background: radial-gradient(circle at top center, #1e3a8a, #020617); } /* blue-900 to slate-950 */
+    .bg-gradient-radial { background: radial-gradient(circle at top center, #1e3a8a, #020617); }
+    
+    /* CSS cho thanh công cụ vẽ */
+    .tool-btn { @apply p-2 md:p-3 rounded-xl bg-slate-800/80 text-slate-400 hover:text-yellow-400 hover:bg-slate-700 transition cursor-pointer border border-slate-600; }
+    .tool-btn.active { @apply text-yellow-400 bg-blue-900 border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]; }
+    .color-btn { @apply w-6 h-6 md:w-8 md:h-8 rounded-full cursor-pointer border-2 border-transparent transition-transform hover:scale-110; }
+    .color-btn.active { @apply border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.5)]; }
   </style>
 </head>
 <body class="bg-slate-950 font-sans text-slate-200 antialiased selection:bg-yellow-500/30 bg-gradient-radial bg-grid min-h-screen bg-fixed">
@@ -71,7 +77,7 @@
   <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] hidden flex-col items-center justify-center">
     <div class="bg-blue-950 border-2 border-yellow-500/50 p-8 rounded-2xl flex flex-col items-center shadow-[0_0_50px_rgba(234,179,8,0.2)] text-center w-80">
       <i data-lucide="mountain" class="w-16 h-16 text-yellow-400 animate-bounce mb-4 mx-auto"></i>
-      <p id="loadingText" class="text-lg font-black text-yellow-400 tracking-widest uppercase drop-shadow-md">Đang khởi tạo chặng đua...</p>
+      <p id="loadingText" class="text-lg font-black text-yellow-400 tracking-widest uppercase drop-shadow-md">Đang khởi tạo...</p>
     </div>
   </div>
 
@@ -91,60 +97,83 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- MODAL TRÌNH CHIẾU CÂU SAI DÀNH CHO GIÁO VIÊN -->
+  <!-- MODAL TRÌNH CHIẾU CÂU SAI & VẼ (FULL SCREEN) -->
   <!-- ========================================== -->
-  <div id="reviewModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[150] hidden flex-col items-center justify-center p-4">
-    <div class="bg-blue-950 border-2 border-yellow-500 rounded-3xl shadow-[0_0_60px_rgba(234,179,8,0.3)] w-full max-w-4xl flex flex-col overflow-hidden animate-fadeIn relative">
-      
-      <!-- Viền trang trí -->
-      <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400"></div>
+  <div id="reviewModal" class="fixed inset-0 bg-blue-950 z-[150] hidden flex-col animate-fadeIn">
+    
+    <!-- Viền trên -->
+    <div class="w-full h-1.5 bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400 shrink-0"></div>
 
-      <!-- Header -->
-      <div class="px-6 py-5 border-b border-blue-900/50 flex justify-between items-center bg-slate-900/50">
-        <div class="flex items-center space-x-3">
-          <div class="bg-yellow-500/20 p-2 rounded-lg border border-yellow-500/50">
-            <i data-lucide="presentation" class="w-6 h-6 text-yellow-400"></i>
-          </div>
-          <h2 class="text-xl font-black text-white uppercase tracking-widest drop-shadow-md">Trình Chiếu Lỗi Sai</h2>
+    <!-- Header Fullscreen -->
+    <div class="px-6 py-4 border-b border-blue-900 bg-slate-950/80 flex justify-between items-center shrink-0 z-30">
+      <div class="flex items-center space-x-4">
+        <div class="bg-yellow-500/20 p-2 rounded-xl border border-yellow-500/50">
+          <i data-lucide="presentation" class="w-6 h-6 text-yellow-400"></i>
         </div>
-        <button onclick="closeReviewModal()" class="text-slate-400 hover:text-yellow-400 transition bg-slate-800 hover:bg-slate-700 p-2 rounded-lg">
-          <i data-lucide="x" class="w-6 h-6"></i>
-        </button>
+        <div>
+           <h2 class="text-xl md:text-2xl font-black text-white uppercase tracking-widest drop-shadow-md leading-none">Trình Chiếu & Phân Tích</h2>
+           <span class="text-xs text-blue-300 font-bold tracking-wider" id="reviewSubtitle">Phòng thi: Đang tải...</span>
+        </div>
       </div>
+      <div class="flex items-center space-x-3">
+         <div class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl text-yellow-400 font-black font-mono shadow-inner mr-4">
+             <i data-lucide="users" class="w-4 h-4 inline mr-2 text-slate-400"></i>Sai: <span id="reviewWrongCount" class="text-lg ml-1">0</span>
+         </div>
+         <button onclick="closeReviewModal()" class="text-slate-400 hover:text-red-400 transition bg-slate-800 hover:bg-red-950 border border-slate-700 hover:border-red-900 px-4 py-2 rounded-xl flex items-center font-bold">
+            <i data-lucide="x" class="w-5 h-5 mr-2"></i> Đóng
+         </button>
+      </div>
+    </div>
+    
+    <!-- Main Content Area (Bảng trắng & Công cụ vẽ) -->
+    <div class="flex-1 flex overflow-hidden relative" id="reviewWorkspace">
       
-      <!-- Content -->
-      <div class="p-6 md:p-10 flex-1 flex flex-col justify-center items-center text-center min-h-[400px] relative">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
-        
-        <div class="mb-6 inline-flex items-center bg-red-500/20 border border-red-500/50 text-red-400 px-5 py-2 rounded-full text-sm font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(239,68,68,0.2)] relative z-10">
-          <i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i>
-          Chướng ngại vật nhiều người vấp nhất
-        </div>
-        
-        <h3 id="reviewQuestionText" class="text-2xl md:text-4xl font-bold text-white mb-10 leading-relaxed w-full drop-shadow-lg relative z-10 font-serif"></h3>
-        
-        <div class="flex items-center justify-center space-x-4 text-yellow-400 font-black text-2xl bg-blue-900/80 px-8 py-5 rounded-2xl border-2 border-yellow-500/50 shadow-inner relative z-10">
-          <i data-lucide="users" class="w-10 h-10"></i>
-          <div class="flex flex-col text-left leading-none">
-            <span class="text-5xl text-white mb-1" id="reviewWrongCount">0</span>
-            <span class="text-sm font-bold text-blue-300 uppercase tracking-wider">Nhà leo núi trả lời sai</span>
-          </div>
-        </div>
+      <!-- Thanh công cụ vẽ (Sidebar Trái) -->
+      <div class="w-16 md:w-20 bg-slate-900 border-r border-blue-900/50 flex flex-col items-center py-4 space-y-3 shrink-0 z-30 shadow-xl overflow-y-auto">
+         <button class="tool-btn active" data-tool="pen" title="Bút vẽ"><i data-lucide="pen"></i></button>
+         <button class="tool-btn" data-tool="line" title="Đường thẳng"><i data-lucide="minus"></i></button>
+         <button class="tool-btn" data-tool="dashed" title="Đường đứt nét"><i data-lucide="more-horizontal"></i></button>
+         <button class="tool-btn" data-tool="rect" title="Hình chữ nhật"><i data-lucide="square"></i></button>
+         <button class="tool-btn" data-tool="circle" title="Hình tròn"><i data-lucide="circle"></i></button>
+         <div class="w-10 h-px bg-slate-700 my-2"></div>
+         <button class="tool-btn" data-tool="eraser" title="Cục tẩy"><i data-lucide="eraser"></i></button>
+         <button class="tool-btn text-red-400 hover:text-red-300" id="clearCanvasBtn" title="Xóa toàn bộ"><i data-lucide="trash-2"></i></button>
+         
+         <div class="w-10 h-px bg-slate-700 my-2"></div>
+         <!-- Bảng màu -->
+         <div class="color-btn active bg-yellow-400" data-color="#facc15"></div>
+         <div class="color-btn bg-red-500" data-color="#ef4444"></div>
+         <div class="color-btn bg-blue-400" data-color="#60a5fa"></div>
+         <div class="color-btn bg-emerald-400" data-color="#34d399"></div>
+         <div class="color-btn bg-white" data-color="#ffffff"></div>
       </div>
 
-      <!-- Footer / Navigation -->
-      <div class="bg-slate-900/80 px-6 py-5 border-t border-blue-900/50 flex justify-between items-center backdrop-blur">
-        <button onclick="prevReviewSlide()" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold flex items-center transition border border-slate-600">
-          <i data-lucide="chevron-left" class="w-5 h-5 mr-2"></i> Câu trước
-        </button>
-        <div class="flex flex-col items-center">
-            <span class="text-xs text-slate-500 uppercase tracking-widest font-bold mb-1">Tiến độ phân tích</span>
-            <span id="reviewSlideCounter" class="text-yellow-400 font-mono font-black tracking-widest text-xl bg-slate-950 px-4 py-1 rounded-lg border border-slate-800">1 / 5</span>
-        </div>
-        <button onclick="nextReviewSlide()" class="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center transition border border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)]">
-          Câu tiếp <i data-lucide="chevron-right" class="w-5 h-5 ml-2"></i>
-        </button>
+      <!-- Vùng hiển thị câu hỏi và Canvas đè lên -->
+      <div class="flex-1 relative flex flex-col items-center justify-center p-6 md:p-12 overflow-hidden bg-slate-950/50 bg-grid" id="slideContainer">
+         
+         <!-- Nội dung câu hỏi -->
+         <div id="reviewQuestionContainer" class="w-full max-w-5xl z-10 pointer-events-none select-none">
+            <h3 id="reviewQuestionText" class="text-3xl md:text-5xl font-bold text-white mb-10 leading-snug w-full drop-shadow-lg font-serif bg-slate-900/60 p-8 rounded-3xl border border-blue-800/50 backdrop-blur-sm"></h3>
+         </div>
+
+         <!-- CANVAS LỚP VẼ ĐÈ LÊN -->
+         <canvas id="drawingCanvas" class="absolute inset-0 z-20 cursor-crosshair touch-none w-full h-full"></canvas>
       </div>
+
+    </div>
+
+    <!-- Footer / Navigation -->
+    <div class="bg-slate-950 px-6 py-4 border-t border-blue-900 flex justify-between items-center shrink-0 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+      <button onclick="prevReviewSlide()" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold flex items-center transition border border-slate-600 shadow-md">
+        <i data-lucide="chevron-left" class="w-5 h-5 mr-2"></i> Lùi lại
+      </button>
+      <div class="flex items-center bg-blue-900/30 px-6 py-2 rounded-xl border border-blue-800/50">
+          <span class="text-sm text-blue-300 uppercase tracking-widest font-bold mr-4">Tiến độ</span>
+          <span id="reviewSlideCounter" class="text-yellow-400 font-mono font-black text-2xl tracking-widest">1 / 5</span>
+      </div>
+      <button onclick="nextReviewSlide()" class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-bold flex items-center transition border border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+        Câu tiếp <i data-lucide="chevron-right" class="w-5 h-5 ml-2"></i>
+      </button>
     </div>
   </div>
 
@@ -170,7 +199,6 @@
       <div id="studentForm" class="space-y-4 animate-fadeIn">
         <div id="loginErrorMsg" class="hidden bg-red-950/80 border border-red-500 text-red-300 text-sm p-4 rounded-xl font-medium text-center leading-relaxed"></div>
         
-        <!-- Accordion Cốt Truyện -->
         <div class="bg-slate-900/60 border border-blue-500/40 rounded-xl shadow-lg relative overflow-hidden">
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
           <button type="button" onclick="toggleAccordion('storyContent', 'storyIcon')" class="w-full p-4 flex items-center justify-between focus:outline-none hover:bg-slate-800/80 transition-colors group">
@@ -188,7 +216,6 @@
           </div>
         </div>
 
-        <!-- Accordion Luật -->
         <div class="bg-slate-900/60 border border-yellow-500/40 rounded-xl shadow-lg relative overflow-hidden">
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent opacity-50"></div>
           <button type="button" onclick="toggleAccordion('rulesContent', 'rulesIcon')" class="w-full p-4 flex items-center justify-between focus:outline-none hover:bg-slate-800/80 transition-colors group">
@@ -555,7 +582,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, onSnapshot, serverTimestamp, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     let firebaseConfig = {};
     if (typeof __firebase_config !== 'undefined') {
@@ -611,7 +638,11 @@
     let currentStreak = 0;
     let maxStreak = 0;
     let totalScore = 0;
+    let currentCorrectCount = 0;
     const BASE_POINTS = 100;
+    
+    // Real-time Sync State
+    let currentSessionDocRef = null;
 
     let leaderboardData = [];
     let unsubscribeLeaderboard = null;
@@ -620,6 +651,14 @@
     // Review State (Trình chiếu câu sai)
     let wrongQuestionsList = [];
     let currentReviewIdx = 0;
+
+    // Drawing Canvas State
+    let canvas, ctx;
+    let isDrawing = false;
+    let currentTool = 'pen'; // pen, line, dashed, rect, circle, eraser
+    let currentColor = '#facc15';
+    let startX, startY;
+    let snapshot;
 
     const $ = (id) => document.getElementById(id);
     const show = (el) => el && el.classList.remove('hidden');
@@ -635,7 +674,10 @@
 
     function triggerMathJax(elements) {
       if (window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise(elements).catch(e => console.error(e));
+        window.MathJax.typesetPromise(elements).then(() => {
+            // Cập nhật lại kích thước canvas sau khi công thức toán học render xong (nếu đang bật modal)
+            if(!$('reviewModal').classList.contains('hidden')) initCanvasSize();
+        }).catch(e => console.error(e));
       }
     }
 
@@ -685,7 +727,134 @@
       return array;
     }
 
-    // --- JS CHO TRÌNH CHIẾU CÂU SAI ---
+    // ==========================================
+    // JS CHO TRÌNH CHIẾU VÀ CÔNG CỤ VẼ
+    // ==========================================
+    function initCanvasSize() {
+        canvas = $('drawingCanvas');
+        if(!canvas) return;
+        const container = $('slideContainer');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        ctx = canvas.getContext('2d');
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+    }
+
+    function setupCanvasDrawing() {
+        canvas = $('drawingCanvas');
+        ctx = canvas.getContext('2d');
+
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+            }
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        };
+
+        const startDraw = (e) => {
+            e.preventDefault();
+            isDrawing = true;
+            const pos = getPos(e);
+            startX = pos.x;
+            startY = pos.y;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        };
+
+        const drawing = (e) => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            
+            ctx.putImageData(snapshot, 0, 0); // Restore to preview shape
+            
+            if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 20;
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = currentColor;
+                
+                if (currentTool === 'dashed') ctx.setLineDash([10, 10]);
+                else ctx.setLineDash([]);
+
+                if (currentTool === 'pen') {
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height); // Update snapshot continuously for pen
+                } else if (currentTool === 'line' || currentTool === 'dashed') {
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                } else if (currentTool === 'rect') {
+                    ctx.beginPath();
+                    ctx.strokeRect(startX, startY, pos.x - startX, pos.y - startY);
+                } else if (currentTool === 'circle') {
+                    ctx.beginPath();
+                    const radius = Math.sqrt(Math.pow(pos.x - startX, 2) + Math.pow(pos.y - startY, 2));
+                    ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+            }
+        };
+
+        const stopDraw = (e) => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            isDrawing = false;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.setLineDash([]);
+        };
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', drawing);
+        canvas.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('mouseout', stopDraw);
+
+        // Touch support
+        canvas.addEventListener('touchstart', startDraw, {passive: false});
+        canvas.addEventListener('touchmove', drawing, {passive: false});
+        canvas.addEventListener('touchend', stopDraw);
+    }
+
+    // Tool click handlers
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+        if(btn.id === 'clearCanvasBtn') return;
+        btn.addEventListener('click', () => {
+            document.querySelector('.tool-btn.active')?.classList.remove('active');
+            btn.classList.add('active');
+            currentTool = btn.dataset.tool;
+        });
+    });
+
+    // Color click handlers
+    document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelector('.color-btn.active')?.classList.remove('active', 'border-white');
+            btn.classList.add('active', 'border-white');
+            currentColor = btn.dataset.color;
+            if(currentTool === 'eraser') {
+               // Chuyển về pen nếu đang chọn tẩy mà bấm màu
+               document.querySelector('.tool-btn[data-tool="pen"]').click();
+            }
+        });
+    });
+
+    $('clearCanvasBtn').addEventListener('click', () => {
+        if(ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    window.addEventListener('resize', () => {
+        if(!$('reviewModal').classList.contains('hidden')) initCanvasSize();
+    });
+
     window.openReviewModal = () => {
       if (currentFilterCode === 'ALL') {
           alert('Vui lòng chọn MỘT Chặng Đua cụ thể (ở ô Lọc bên phải) để hệ thống tổng hợp dữ liệu câu sai chính xác nhất!');
@@ -702,7 +871,7 @@
       filteredData.forEach(student => {
           if (student.detailedResults) {
               student.detailedResults.forEach(res => {
-                  if (!res.isCorrect) {
+                  if (!res.isCorrect && res.userAnswered) {
                       questionStats[res.question] = (questionStats[res.question] || 0) + 1;
                   }
               });
@@ -720,8 +889,16 @@
       }
 
       currentReviewIdx = 0;
+      $('reviewSubtitle').textContent = `Phòng thi: ${currentFilterCode}`;
       show($('reviewModal'));
-      window.renderReviewSlide();
+      
+      // Delay chút xíu để DOM render xong mới setup canvas
+      setTimeout(() => {
+          initCanvasSize();
+          setupCanvasDrawing();
+          window.renderReviewSlide();
+      }, 50);
+      
       lucide.createIcons();
     };
 
@@ -744,12 +921,17 @@
     };
 
     window.renderReviewSlide = () => {
+      // Clear bảng trắng khi chuyển câu
+      if(ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+
       const item = wrongQuestionsList[currentReviewIdx];
       $('reviewQuestionText').innerHTML = formatMathText(item.question);
       $('reviewWrongCount').textContent = item.wrongCount;
       $('reviewSlideCounter').textContent = `${currentReviewIdx + 1} / ${wrongQuestionsList.length}`;
       triggerMathJax([$('reviewQuestionText')]);
     };
+    // ==========================================
+
 
     // Hiển thị Popup Bứt Phá
     function showComboPop(streak) {
@@ -774,7 +956,6 @@
       setTimeout(() => hide(pContainer), 1200);
     }
 
-    // Hiển thị Popup Vấp Ngã
     function showComboBreak() {
       const pContainer = $('comboBreakContainer');
       const pText = $('comboBreakText');
@@ -793,11 +974,9 @@
     }
 
     function updateScoreUI() {
-      // Hiệu ứng đếm số (nhảy điểm)
       let currentDisplayScore = parseInt($('scoreText').textContent) || 0;
       let targetScore = totalScore;
       
-      // Nếu nhảy điểm lớn thì animate, nếu không thì set thẳng
       if (targetScore > currentDisplayScore && targetScore - currentDisplayScore <= 500) {
           let step = Math.ceil((targetScore - currentDisplayScore) / 10);
           let interval = setInterval(() => {
@@ -818,6 +997,31 @@
       if (currentStreak >= 5) icon.setAttribute('class', "w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400 animate-pulse");
       else if (currentStreak >= 2) icon.setAttribute('class', "w-4 h-4 md:w-5 md:h-5 text-blue-400 fill-blue-400");
       else icon.setAttribute('class', "w-4 h-4 md:w-5 md:h-5 text-slate-500");
+    }
+
+    // ==========================================
+    // ĐỒNG BỘ TIẾN ĐỘ THỜI GIAN THỰC (REAL-TIME)
+    // ==========================================
+    async function syncProgressToFirebase(isFinished = false) {
+      if (!currentUser || !currentSessionDocRef) return;
+      
+      const timeSpent = (examTimeMinutes * 60) - Math.max(0, timeLeftSec); 
+      const detailedResults = activeQuizData.map((q, i) => {
+        const isC = answersArr[i] === q.correctIndex;
+        return { question: q.question, isCorrect: isC, userAnswered: answersArr[i] !== null };
+      });
+
+      try {
+         await updateDoc(currentSessionDocRef, {
+            score: currentCorrectCount,
+            totalScore: totalScore,
+            maxStreak: maxStreak,
+            timeSpent: timeSpent,
+            detailedResults: detailedResults,
+            isFinished: isFinished,
+            timestamp: new Date().toISOString()
+         });
+      } catch(e) { console.error("Lỗi đồng bộ tiến độ:", e); }
     }
 
     async function initAuth() {
@@ -965,9 +1169,32 @@
       currentStreak = 0;
       maxStreak = 0;
       totalScore = 0;
+      currentCorrectCount = 0;
       $('scoreText').textContent = '0';
       updateScoreUI();
       isProcessing = false;
+      currentSessionDocRef = null;
+      
+      // Tạo session Firebase ngay lập tức để hiện trên bảng BXH Real-time
+      if (currentUser) {
+          const usedCode = examCodeStr || 'DEMO';
+          const initialData = {
+            studentName: studentNameStr,
+            examCode: usedCode,
+            score: 0,
+            totalScore: 0,
+            maxStreak: 0,
+            total: activeQuizData.length,
+            timeSpent: 0,
+            timestamp: new Date().toISOString(),
+            isFinished: false,
+            userId: currentUser.uid
+          };
+          try {
+             const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'exam_results');
+             currentSessionDocRef = await addDoc(colRef, initialData);
+          } catch(e) { console.error(e); }
+      }
       
       $('headerStudentName').textContent = studentNameStr;
       $('headerExamCode').textContent = examCodeStr ? `[CHẶNG: ${examCodeStr}]` : '[KHỞI ĐỘNG]';
@@ -1012,7 +1239,7 @@
       lucide.createIcons();
     };
 
-    // LOGIC CHỌN ĐÁP ÁN
+    // LOGIC CHỌN ĐÁP ÁN (Real-time Update)
     window.selectAnswer = (idx) => {
       if(isProcessing) return;
       isProcessing = true;
@@ -1024,6 +1251,7 @@
       btn.classList.add('ring-2', 'ring-yellow-400', 'bg-blue-800');
 
       if (idx === q.correctIndex) {
+        currentCorrectCount++;
         currentStreak++;
         if (currentStreak > maxStreak) maxStreak = currentStreak;
         
@@ -1037,6 +1265,9 @@
         
         showComboPop(currentStreak);
 
+        // Đồng bộ tiến trình ngay lập tức
+        syncProgressToFirebase();
+
         setTimeout(() => {
           overlay.remove();
           nextQuestion();
@@ -1048,6 +1279,8 @@
         currentStreak = 0;
         updateScoreUI();
         
+        syncProgressToFirebase();
+
         setTimeout(() => {
           nextQuestion();
         }, 900); 
@@ -1098,31 +1331,13 @@
     }
 
     async function submitExam() {
-      showLoading("Đang tổng hợp điểm số Olympia...");
+      showLoading("Đang chốt điểm số chung cuộc...");
       $('bgMusic').pause();
-
-      let correctCount = 0;
-      const detailedResults = activeQuizData.map((q, i) => {
-        const isC = answersArr[i] === q.correctIndex;
-        if(isC) correctCount++;
-        return { question: q.question, isCorrect: isC, userAnswered: answersArr[i] !== null };
-      });
 
       const timeSpent = (examTimeMinutes * 60) - Math.max(0, timeLeftSec); 
       const usedCode = examCodeStr || 'DEMO';
 
-      const resultObj = {
-        studentName: studentNameStr,
-        examCode: usedCode,
-        score: correctCount, 
-        totalScore: totalScore, 
-        maxStreak: maxStreak,
-        total: activeQuizData.length,
-        timeSpent: timeSpent,
-        timestamp: new Date().toISOString(),
-        detailedResults
-      };
-
+      // Chạy ngầm Sheet
       setTimeout(() => {
         try {
           const url = `${DEFAULT_SCRIPT_URL}?studentName=${encodeURIComponent(studentNameStr)}&examCode=${encodeURIComponent(usedCode)}&score=${totalScore}&total=${activeQuizData.length}&timeSpent=${timeSpent}`;
@@ -1130,42 +1345,33 @@
         } catch (e) {}
       }, 10);
 
-      if (currentUser) {
+      if (currentUser && currentSessionDocRef) {
         try {
-          const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'exam_results');
-          const docRef = await addDoc(colRef, { ...resultObj, userId: currentUser.uid, createdAt: serverTimestamp() });
-          
-          for (let wait = 5; wait > 0; wait--) {
-            showLoading(`Chờ xét duyệt Bảng Xếp Hạng... ${wait}s`);
+          await syncProgressToFirebase(true); // Cập nhật lần cuối cùng
+
+          for (let wait = 3; wait > 0; wait--) {
+            showLoading(`Chờ xét duyệt Bảng Vàng... ${wait}s`);
             await new Promise(r => setTimeout(r, 1000));
           }
-          showLoading("Đã có kết quả!");
 
-          const snap = await getDocs(colRef);
-          let allData = snap.docs.map(d => ({id: d.id, ...d.data()}));
-          if(!allData.find(d => d.id === docRef.id)) allData.push({id: docRef.id, ...resultObj});
+          let filtered = leaderboardData.filter(r => (r.examCode || 'DEMO') === usedCode);
+          const rank = filtered.findIndex(r => r.id === currentSessionDocRef.id) + 1;
           
-          let filtered = allData.filter(r => (r.examCode || 'DEMO') === usedCode);
-          filtered.sort((a,b) => {
-            const scoreA = a.totalScore || a.score || 0;
-            const scoreB = b.totalScore || b.score || 0;
-            if (scoreB !== scoreA) return scoreB - scoreA;
-            
-            const streakA = a.maxStreak || 0;
-            const streakB = b.maxStreak || 0;
-            if (streakB !== streakA) return streakB - streakA;
-
-            return a.timeSpent - b.timeSpent; 
-          });
-          
-          const rank = filtered.findIndex(r => r.id === docRef.id) + 1;
+          const resultObj = {
+              studentName: studentNameStr,
+              score: currentCorrectCount, 
+              totalScore: totalScore, 
+              maxStreak: maxStreak,
+              total: activeQuizData.length,
+              timeSpent: timeSpent
+          };
           renderResultData(resultObj, rank, filtered.length);
         } catch (e) {
           console.error(e);
-          renderResultData(resultObj, 0, 0);
+          renderResultData({studentName: studentNameStr, score: currentCorrectCount, totalScore: totalScore, maxStreak: maxStreak, total: activeQuizData.length, timeSpent: timeSpent}, 0, 0);
         }
       } else {
-        renderResultData(resultObj, 0, 0);
+        renderResultData({studentName: studentNameStr, score: currentCorrectCount, totalScore: totalScore, maxStreak: maxStreak, total: activeQuizData.length, timeSpent: timeSpent}, 0, 0);
       }
     }
 
@@ -1338,10 +1544,13 @@ Chỉ in ra bảng, không giải thích.`;
           
           const tScore = st.totalScore || st.score || 0;
           const mStreak = st.maxStreak || 0;
+          
+          // Trạng thái live
+          const statusBadge = !st.isFinished ? `<span class="bg-blue-900 text-blue-400 border border-blue-500 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold ml-2 animate-pulse">Đang đua</span>` : '';
 
           html += `<tr class="hover:bg-blue-900/40 transition border-b border-slate-800/50 group">
             <td class="p-4 md:p-5 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-lg font-black ${rClass} transform group-hover:scale-110 transition-transform">${i+1}</span></td>
-            <td class="p-4 md:p-5"><div class="font-black text-white text-sm md:text-base tracking-wider">${st.studentName}</div><div class="text-[10px] text-slate-500 tracking-widest mt-1">${d.toLocaleTimeString('vi-VN')} - ${d.toLocaleDateString('vi-VN')}</div></td>
+            <td class="p-4 md:p-5"><div class="font-black text-white text-sm md:text-base tracking-wider flex items-center">${st.studentName} ${statusBadge}</div><div class="text-[10px] text-slate-500 tracking-widest mt-1">${d.toLocaleTimeString('vi-VN')} - ${d.toLocaleDateString('vi-VN')}</div></td>
             <td class="p-4 md:p-5 text-center"><span class="text-blue-300 font-mono text-[10px] md:text-xs border border-blue-800/50 px-2.5 py-1 rounded bg-blue-950/50 shadow-inner">${st.examCode||'DEMO'}</span></td>
             <td class="p-4 md:p-5 text-center"><div class="flex flex-col items-center justify-center gap-0.5"><div class="font-black text-yellow-400 text-lg md:text-xl flex items-center justify-center font-mono drop-shadow-md"><i data-lucide="star" class="w-3.5 h-3.5 mr-1 text-yellow-500 fill-yellow-500"></i>${tScore}</div><div class="flex items-center text-[10px] text-slate-400 font-bold uppercase mt-1"><i data-lucide="zap" class="w-3 h-3 text-blue-400 mr-1"></i> Chuỗi: ${mStreak}</div></div></td>
             <td class="p-4 md:p-5 text-center text-emerald-400 font-mono font-bold">${timeStr}</td>
